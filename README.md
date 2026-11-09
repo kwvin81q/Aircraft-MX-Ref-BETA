@@ -45,3 +45,56 @@ Default directory: edit `CONTACTS` in `app.js`; defaults for favorites in the `F
 - Green telephone handset SVG replaces the red telephone emoji in the call buttons (home favorites, security, aircraft pages, and full contact directory).
 - Home and directory branding now reads **FedEx MX Quick Connect** rather than Hangar 10 Quick Links.
 - The contact directory does not autofocus its search field, so mobile keyboards stay closed until the user taps Search.
+
+
+## v1.2 manager directory additions
+- A separate manager list card appears **below Quick Connect** on the home page.
+- April 2026 manager card transcribed from user-supplied photo. 34 entries, with 901 added to each seven-digit number.
+- Favorite a manager using the star: the entry also appears in **My Favorites** under Quick Connect.
+- Expand **View Full Manager List** to see every manager and use **Add Manager** for personal entries.
+- Seven-digit additions default to the 901 area code. Ten-digit numbers are preserved.
+- Manager favorites and custom entries stay in localStorage on that browser/device.
+- Full Contacts Directory has a **Managers** filter; opening it still does not focus the search box.
+- Security changed to **901-922-1945** based on the newer photographed directory. Verify emergency numbers with your operations team.
+- **Privacy warning:** the manager badge may contain nonpublic employee information and direct numbers. A public GitHub Pages test site is publicly accessible. Get permission before publishing this list, and do not publish employee IDs or personal numbers to a public website without authorization.
+
+
+## v1.2: Updated full phone list + Memphis Manager List
+
+- Full contacts updated from the newer Federal Express Hangar 10 Phone List photo. Conference PINs were intentionally excluded. Check all transcribed numbers against the source.
+- FedEx Security updated to **901-922-1945**, matching the newer photo; earlier source showed a different number. Verify before operational use.
+- New separate **Memphis Manager List** panel at the bottom of the home page. It includes the April 2026 badge roster, employee IDs, and phone numbers.
+- Every 7-digit manager phone number is displayed as **901-XXX-XXXX**. Numbers with an existing area code are preserved.
+- Manager favorites are independent from contact favorites and saved locally per browser. Tap a star to add/remove; the home panel shows favorites first.
+- **Add My Own Manager** accepts a name, optional employee number, and a 7-digit or 10-digit US number. Seven-digit numbers receive 901. Custom managers are saved locally and automatically starred. You can delete custom managers.
+- Opening the manager directory does not auto-focus the search field.
+- No live usage worker calls are made.
+
+**Privacy / publishing warning:** The built-in roster contains employee identifiers and named individuals' phone numbers from an internal badge. If you upload `managers.js` to a public GitHub Pages repository, anyone can download that information. Obtain authorization for publishing or keep this test private. GitHub Pages sites are generally public even when a source repository is private. For production, use an authenticated backend for staff-only directory data rather than shipping it in static JavaScript.
+
+
+## v1.3 — Local ATIS preferences (bottom of the home page)
+- Each mechanic can set an ICAO airport (four letters), ATIS frequency in MHz, and optional personally entered conditions/notes. Defaults KMEM / 127.750 from existing reference card. Settings use localStorage and do not update other users.
+- The airport weather link opens the selected station's METAR on AviationWeather.gov. It is NOT the official ATIS broadcast and is not embedded live data. Live ATIS would require a separately verified service and licensing/availability checks.
+- The ATIS setup section is last, after Memphis Manager List. The form is collapsed by default, so no keyboard opens automatically.
+- Maintain operational verification of frequencies and observations. Never use the manually entered note as an operational weather source.
+
+
+## v1.4 — Footer ordering and Local ATIS temperature reference
+- HOME ORDER: aircraft cards, oxygen, utilities, disclaimer, FedEx MX Quick Connect, Memphis Manager List, LOCAL ATIS, Request a Change, then Usage on This Device. **Usage is the last panel**.
+- Each aircraft page gets the same Local ATIS airport temperature/elevation panel below the reference/security information.
+- User sets a four-character airport ICAO code (defaults to KMEM), stored locally for all pages.
+- Refresh button requests the official US NWS airport station record and latest observation. Converts temperature from degrees Celsius to degrees Fahrenheit and elevation from meters to feet. Displays the weather observation's exact date and time in America/Chicago.
+- Reports lacking a valid recent temperature (over 90 minutes) are shown as unavailable. The UI never invents readings; failure also shows unavailable.
+- IMPORTANT: this displays **METAR/airport observation temperature**, not an extracted ATIS broadcast. The panel retains the requested LOCAL ATIS title but states the actual source explicitly. It is not a replacement for the ATIS voice broadcast or approved flight/maintenance weather data.
+- NOAA/NWS weather.gov endpoint coverage is US stations; some airport codes or network environments may not return station observations. On failure, temperature and field elevation are shown as unavailable. Field elevation is station metadata rather than an ATIS value. The browser must allow HTTPS calls to api.weather.gov.
+- A browser network fetch is intentionally not claimed to have been end-to-end tested here. No live backend deployed.
+
+
+## v1.5 airport panel hang fix
+- Refresh requests now have a hard 9-second timeout and recover to a clickable button.
+- Requests for station metadata no longer block temperature; KMEM shows the FAA field elevation 341 ft MSL even offline.
+- Previous valid temperature may be retained only while its observation timestamp is under 90 minutes old.
+- The reported temperature is from an NWS airport observation, not a decoded ATIS broadcast.
+- If the browser/network prevents weather retrieval, the panel displays an error instead of spinning indefinitely.
+- After GitHub Pages deployment, refresh the site in Safari to replace cached JS.
