@@ -93,11 +93,23 @@
 .fleet-nav-btn.is-active{border-width:2px;box-shadow:0 0 13px currentColor,inset 0 0 14px #ffffff18}
 .atis-grid.atis-2,.local-atis-grid.atis-2{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:520px){.fleet-bottom-nav{gap:4px}.fleet-nav-btn{border-radius:8px;min-height:61px;padding:5px 2px;font-size:10px}.fleet-nav-icon{font-size:20px}}
+
+/* Aircraft Lookup is additive; legacy cards, notes, contacts and ATIS are untouched. */
+.mx-aircraft-lookup{margin:12px 0 15px;padding:16px;border:1.5px solid #67bafd;border-radius:17px;background:linear-gradient(120deg,rgba(8,29,59,.96),rgba(16,34,62,.9));box-shadow:0 0 0 1px #8ae4ff22 inset,0 10px 30px #0006;color:#f7fbff}
+.mx-lookup-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px}.mx-lookup-kicker{color:#93cfff;letter-spacing:1.1px;font-size:10px;font-weight:850}.mx-lookup-heading h2{font-size:22px;line-height:1.12;margin:4px 0}.mx-lookup-heading p{font-size:12px;color:#c3d7ee;margin:3px 0}.mx-lookup-symbol{font-size:40px;color:#8dd4ff}
+.mx-lookup-form label{display:block;font-size:11px;font-weight:800;letter-spacing:.6px;margin-bottom:7px}.mx-lookup-controls{display:flex;gap:8px}.mx-lookup-controls input{min-width:0;flex:1;background:#071b32;border:1px solid #8aadd3;border-radius:10px;color:#fff;padding:11px;font-size:16px;text-transform:uppercase}.mx-lookup-controls button{border-radius:10px;border:1px solid #72c5ff;background:linear-gradient(140deg,#1864aa,#13468a);color:white;padding:11px 16px;font-weight:850;white-space:nowrap}.mx-lookup-form small{display:block;margin-top:7px;font-size:11px;color:#b2c9df;line-height:1.45}
+.mx-lookup-result{margin-top:14px;padding:13px;border:1px solid #496c93;border-radius:12px;background:rgba(2,13,29,.68)}.mx-lookup-result h3{margin:0;font-size:21px}.mx-lookup-status{font-size:11px;font-weight:800;color:#bfe4ff;margin:5px 0 12px}.mx-lookup-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mx-lookup-field{padding:10px;border:1px solid #3d597a;border-radius:9px;background:#102741}.mx-lookup-field small{display:block;font-size:10px;color:#a7c2df;margin-bottom:5px}.mx-lookup-field strong{display:block;overflow-wrap:anywhere;font-size:14px}.mx-lookup-note{font-size:12px;line-height:1.5;color:#c2d5e7;margin:11px 0}.mx-lookup-links{display:flex;gap:8px;flex-wrap:wrap}.mx-lookup-links a,.mx-lookup-links button{padding:9px 12px;border-radius:9px;border:1px solid #5f9bca;background:#13365b;color:#e7f7ff;text-decoration:none;font-size:12px;font-weight:800}.mx-lookup-links button{cursor:pointer}.mx-lookup-links a:focus-visible,.mx-lookup-links button:focus-visible{outline:3px solid #fff}
+@media(max-width:390px){.mx-lookup-controls{flex-direction:column}.mx-lookup-controls button{width:100%}}
 </style></head>
 <body>
 <header class="top"><div class="eyebrow">FEDEX ACMX • QUICK REFERENCE </div><h1>Aircraft Reference</h1><p id="subtitle">Select an aircraft type to view its reference card.</p></header>
 <main class="wrap">
 <div id="home"><nav class="aircraft-grid" aria-label="Select aircraft"><button class="aircraft-btn" data-id="a300">A300</button><button class="aircraft-btn" data-id="md11">MD-11</button><button class="aircraft-btn" data-id="b757">757</button><button class="aircraft-btn" data-id="b767">767</button><button class="aircraft-btn" data-id="b777">777</button></nav>
+<section class="mx-aircraft-lookup" aria-labelledby="mx-lookup-heading">
+ <div class="mx-lookup-heading"><div><span class="mx-lookup-kicker">FEDEX MX • AIRCRAFT IDENTIFICATION</span><h2 id="mx-lookup-heading">Aircraft Lookup</h2><p>Find chart-listed engine details or open official registration and flight records.</p></div><span class="mx-lookup-symbol" aria-hidden="true">✈</span></div>
+ <form id="mx-tail-lookup-form" class="mx-lookup-form"><label for="mx-tail-lookup-input">TAIL NUMBER / FAA REGISTRATION</label><div class="mx-lookup-controls"><input id="mx-tail-lookup-input" name="tail" type="text" autocomplete="off" spellcheck="false" maxlength="12" placeholder="623 or N123FE" aria-describedby="mx-lookup-help" required><button type="submit">⌕ Search</button></div><small id="mx-lookup-help">Enter the chart's 3-digit tail identifier or a complete N-registration. These are different identifiers.</small></form>
+ <div id="mx-tail-lookup-result" class="mx-lookup-result" aria-live="polite" hidden></div>
+</section>
 <section class="panel oxygen"><h2>OXYGEN</h2><div class="data-row"><span>ETOPS 777</span><b>Max 1850 @ 70°</b></div><div class="data-row"><span>ETOPS 767</span><b>1800 @ 70°</b></div><div class="data-row"><span>All other fleet types</span><b>1444 @ 50° • 1500 @ 70° • 1555 @ 90°</b></div></section>
 <div class="utility-grid" id="utilities"></div>
 <p class="disclaimer">Transcribed from the supplied FedEx ACMX reference card (REV# 11/25). This is a convenience display, not an approved maintenance reference. Verify all values, procedures and limits against current approved AMM and company documents before use. Reference card may contain abbreviated or variant-specific information.</p>
@@ -1273,4 +1285,47 @@ if(btn.hasAttribute('data-note-import')){$('notes-import-file').click();return}
 render();
 initializeDeviceBackup();
 })();
-</script></body></html>
+</script>
+<script>
+/* Aircraft lookup: chart-only engine matching; public source links, never a fabricated live result. */
+(()=>{
+ const form=document.getElementById('mx-tail-lookup-form');
+ const input=document.getElementById('mx-tail-lookup-input');
+ const result=document.getElementById('mx-tail-lookup-result');
+ const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const field=(label,val)=>`<div class="mx-lookup-field"><small>${safe(label)}</small><strong>${safe(val)}</strong></div>`;
+ const link=(href,label)=>`<a href="${safe(href)}" target="_blank" rel="noopener noreferrer">${safe(label)} ↗</a>`;
+ function findNumber(num){
+  for(const [fleet,groups] of Object.entries(ENGINE_SERIES)){
+   for(const group of groups){
+    if(group.ranges.some(r=>{const [a,b]=r.split('–').map(Number);return num>=a&&num<=(Number.isFinite(b)?b:a)}))return {fleet,group};
+   }
+  }
+  return null;
+ }
+ function search(v){
+  const q=v.toUpperCase().replace(/[\s-]/g,'');
+  if(!/^(?:\d{3}|N[0-9A-Z]{1,5})$/.test(q)){
+   result.hidden=false;
+   result.innerHTML='<p class="mx-lookup-note">Enter a 3-digit fleet chart identifier (example: 623), or an FAA registration beginning with N (example: N123FE).</p>';
+   return;
+  }
+  if(/^\d{3}$/.test(q)){
+   const match=findNumber(Number(q));
+   if(!match){
+    result.innerHTML=`<h3>${safe(q)}</h3><p class="mx-lookup-status">NOT IN REFERENCE ROSTER</p><p class="mx-lookup-note">This identifier is not on the supplied aircraft-and-engine chart. No aircraft model, engine or ownership is inferred. A full N-registration is needed to search FAA and FlightAware records.</p>`;
+   }else{
+    const a=AIRCRAFT[match.fleet];
+    result.innerHTML=`<h3>Tail ${safe(q)}</h3><p class="mx-lookup-status">FOUND ON USER-SUPPLIED FLEET CHART • NOT LIVE VERIFIED</p><div class="mx-lookup-fields">${field('Aircraft',a.name)}${field('Engine',match.group.type+' • '+match.group.model)}${field('FAA registration','Not established from 3-digit ID')}${field('Current location','Not retrieved')}</div><p class="mx-lookup-note">An entry in the chart does not independently establish current ownership, engine installation or location. Enter the full N-registration to open public flight and registration records.</p><div class="mx-lookup-links"><button type="button" data-lookup-fleet="${safe(match.fleet)}">Open ${safe(a.name)} reference</button></div>`;
+   }
+  }else{
+   const n=q;
+   result.innerHTML=`<h3>${safe(n)}</h3><p class="mx-lookup-status">PUBLIC RECORDS • OPEN EXTERNAL SOURCES</p><div class="mx-lookup-fields">${field('Aircraft / engines','Check FAA registration')}${field('Current registered owner','Check FAA registry')}${field('Last reported position','Check FlightAware')}${field('Prior ownership','Review FAA record documents')}</div><p class="mx-lookup-note">No live position, ownership history, or engine match has been retrieved by this app. Links open the provider websites for this registration. Flight positions may be delayed or unavailable, and ownership records may be incomplete or withheld.</p><div class="mx-lookup-links">${link('https://www.flightaware.com/live/flight/'+encodeURIComponent(n),'FlightAware tracking')}${link('https://www.flightaware.com/resources/registration/'+encodeURIComponent(n),'FlightAware registration')}${link('https://registry.faa.gov/aircraftinquiry','FAA aircraft registry')}${link('https://www.faa.gov/licenses_certificates/aircraft_certification/aircraft_registry','FAA historical records')}</div>`;
+  }
+  result.hidden=false;
+ }
+ form.addEventListener('submit',e=>{e.preventDefault();search(input.value)});
+ result.addEventListener('click',e=>{const btn=e.target.closest('[data-lookup-fleet]');if(!btn)return;const id=btn.dataset.lookupFleet;if(!AIRCRAFT[id])return;history.pushState(null,'','#'+id);show(id,true);window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body></html>
